@@ -4,5 +4,6 @@
     DESCRIPTION,
     FINISH_PROMPT,
     AI_PROMPT,
-    FINISH
-) = range(6)
+    FINISH,
+    SEND_PRESENTTION
+) = range(7)

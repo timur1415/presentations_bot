@@ -12,9 +12,9 @@ from config.config import TOKEN
 
 from start import start
 
-from config.states import MAIN_MENU, TOPIC, DESCRIPTION, FINISH, FINISH_PROMPT
+from config.states import MAIN_MENU, TOPIC, DESCRIPTION, FINISH_PROMPT, SEND_PRESENTTION
 
-from main_work.create_presentation import topic, description, finish_prompt, slide
+from main_work.create_prompt import topic, description, finish_prompt, slide, send_presentation
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -36,7 +36,8 @@ if __name__ == "__main__":
             ],
         TOPIC: [MessageHandler(filters.TEXT & ~filters.COMMAND, topic)],
         DESCRIPTION:[MessageHandler(filters.TEXT & ~filters.COMMAND, description)],
-        FINISH_PROMPT: [MessageHandler(filters.TEXT & ~filters.COMMAND, finish_prompt),]
+        FINISH_PROMPT: [MessageHandler(filters.TEXT & ~filters.COMMAND, finish_prompt)],
+        SEND_PRESENTTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, send_presentation)]
         },
         fallbacks=[CommandHandler("start", start)],
         name="presentations_bot",
