@@ -21,8 +21,11 @@ from main_work.create_presentation import create_presentation
 async def slide(update: Update, context: ContextTypes):
     keyboard = [['3-5'], ['10-15'], ['20+']]
     markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="сколько слайдов?", reply_markup=markup
+        chat_id=update.effective_chat.id,
+        text="Выбери, сколько слайдов должно быть в презентации.",
+        reply_markup=markup
     )
 
     return TOPIC
@@ -30,7 +33,8 @@ async def slide(update: Update, context: ContextTypes):
 async def topic(update: Update, context: ContextTypes):
     context.user_data['slide'] = update.effective_message.text
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="на какую тему делать презентацию"
+        chat_id=update.effective_chat.id,
+        text="Укажи тему презентации, которую хочешь создать."
     )
     return DESCRIPTION
 
@@ -38,7 +42,8 @@ async def topic(update: Update, context: ContextTypes):
 async def description(update: Update, context: ContextTypes):
     context.user_data['topic'] = update.effective_message.text
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="опиши презинтацию. как хочешь чтобы она выглядела тема цвета и возможно текст(заготовки для слайдов)"
+        chat_id=update.effective_chat.id,
+        text="Опиши презентацию: стиль, цветовую гамму, желаемый дизайн и, если хочешь, добавь примерный текст или идеи для слайдов."
     )
     return FINISH_PROMPT
 
@@ -147,6 +152,14 @@ TEXT:
 
 
 async def send_presentation(update: Update, context: ContextTypes):
+    keyboard = [
+    [InlineKeyboardButton("Создать ещё", callback_data="new_presentation")],
+    [InlineKeyboardButton("Главное меню", callback_data="menu")]
+]
+
+    markup = InlineKeyboardMarkup(keyboard)
+
+
     presentation_prompt = f"""
 Создай JSON презентации.
 
@@ -210,7 +223,8 @@ async def send_presentation(update: Update, context: ContextTypes):
         await context.bot.send_document(
             chat_id=update.effective_chat.id,
             document=file,
-            filename=file_name
+            filename=file_name,
+            reply_markup=markup
         )
 
     os.remove(file_name)

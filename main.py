@@ -37,7 +37,9 @@ if __name__ == "__main__":
         TOPIC: [MessageHandler(filters.TEXT & ~filters.COMMAND, topic)],
         DESCRIPTION:[MessageHandler(filters.TEXT & ~filters.COMMAND, description)],
         FINISH_PROMPT: [MessageHandler(filters.TEXT & ~filters.COMMAND, finish_prompt)],
-        SEND_PRESENTTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, send_presentation)]
+        SEND_PRESENTTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, send_presentation),
+                           CallbackQueryHandler(start, pattern='^menu$'),
+                           CallbackQueryHandler(slide, pattern='^new_presentation$')]
         },
         fallbacks=[CommandHandler("start", start)],
         name="presentations_bot",
