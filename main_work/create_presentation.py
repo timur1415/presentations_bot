@@ -7,94 +7,112 @@ from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 
 
-def hex_to_rgb(hex_color: str):
+def hex_to_rgb(hex_color):
     hex_color = hex_color.replace("#", "")
 
     return RGBColor(
         int(hex_color[0:2], 16),
         int(hex_color[2:4], 16),
-        int(hex_color[4:6], 16),
+        int(hex_color[4:6], 16)
     )
 
 
-def is_light_color(color: RGBColor):
-    brightness = (
-        color[0] * 299 +
-        color[1] * 587 +
-        color[2] * 114
-    ) / 1000
+def add_blob(slide, color):
 
-    return brightness > 170
+    x = random.uniform(-1, 10)
+
+    y = random.uniform(-1, 6)
+
+    w = random.uniform(2.0, 4.5)
+
+    h = random.uniform(2.0, 4.5)
+
+    shape = slide.shapes.add_shape(
+        MSO_SHAPE.OVAL,
+        Inches(x),
+        Inches(y),
+        Inches(w),
+        Inches(h)
+    )
+
+    shape.fill.solid()
+
+    shape.fill.fore_color.rgb = color
+
+    shape.fill.transparency = 0.65
+
+    shape.line.fill.background()
 
 
-def get_contrast_text_color(bg_color: RGBColor):
-    if is_light_color(bg_color):
-        return RGBColor(25, 25, 25)
+def add_card(slide):
 
-    return RGBColor(245, 245, 245)
+    x = random.uniform(0.7, 1.4)
+
+    y = random.uniform(1.4, 2.2)
+
+    card = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(x),
+        Inches(y),
+        Inches(10.5),
+        Inches(4.6)
+    )
+
+    card.fill.solid()
+
+    card.fill.fore_color.rgb = RGBColor(
+        255,
+        255,
+        255
+    )
+
+    card.fill.transparency = 0.02
+
+    card.line.fill.background()
 
 
-def add_content(slide, bullets, style, layout):
+def add_frame(slide, color):
 
-    if layout == "cards":
+    frame = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(0.6),
+        Inches(0.6),
+        Inches(11.8),
+        Inches(6.2)
+    )
 
-        positions = [
-            (0.8, 2.0),
-            (6.0, 2.0),
-            (0.8, 4.2),
-            (6.0, 4.2)
-        ]
+    frame.fill.background()
 
-        for i, bullet in enumerate(bullets[:4]):
+    frame.line.color.rgb = color
 
-            x, y = positions[i]
+    frame.line.width = Pt(1.4)
 
-            card_color = RGBColor(
-                255,
-                255,
-                255
-            )
 
-            card = slide.shapes.add_shape(
-                MSO_SHAPE.ROUNDED_RECTANGLE,
-                Inches(x),
-                Inches(y),
-                Inches(4.4),
-                Inches(1.5)
-            )
+def add_corner(slide, color):
 
-            card.fill.solid()
+    corner = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(random.choice([0, 10.6])),
+        Inches(random.choice([0, 5.7])),
+        Inches(2),
+        Inches(1.4)
+    )
 
-            card.fill.fore_color.rgb = card_color
+    corner.fill.solid()
 
-            card.fill.transparency = 0.05
+    corner.fill.fore_color.rgb = color
 
-            card.line.fill.background()
+    corner.fill.transparency = 0.2
 
-            box = slide.shapes.add_textbox(
-                Inches(x + 0.25),
-                Inches(y + 0.35),
-                Inches(3.8),
-                Inches(0.8)
-            )
+    corner.line.fill.background()
 
-            p = box.text_frame.paragraphs[0]
 
-            p.text = bullet
-
-            p.font.size = Pt(18)
-
-            p.font.color.rgb = get_contrast_text_color(
-                card_color
-            )
-
-        return
+def add_title(slide, title, style):
 
     positions = [
-        (0.8, 2.0),
-        (1.2, 2.4),
-        (1.6, 2.8),
-        (2.0, 2.2)
+        (0.8, 0.7),
+        (1.0, 0.9),
+        (0.9, 1.1)
     ]
 
     x, y = random.choice(positions)
@@ -102,13 +120,41 @@ def add_content(slide, bullets, style, layout):
     box = slide.shapes.add_textbox(
         Inches(x),
         Inches(y),
-        Inches(6.3),
-        Inches(4.2)
+        Inches(10),
+        Inches(0.7)
+    )
+
+    p = box.text_frame.paragraphs[0]
+
+    p.text = title
+
+    p.font.size = Pt(28)
+
+    p.font.bold = True
+
+    p.font.color.rgb = style["title"]
+
+
+def add_content(slide, bullets, style):
+
+    positions = [
+        (1.0, 2.0),
+        (1.3, 2.2),
+        (1.7, 2.4),
+        (6.0, 2.0),
+        (5.5, 2.5),
+    ]
+
+    x, y = random.choice(positions)
+
+    box = slide.shapes.add_textbox(
+        Inches(x),
+        Inches(y),
+        Inches(5.2),
+        Inches(4)
     )
 
     tf = box.text_frame
-
-    tf.clear()
 
     use_bullets = random.choice(
         [True, False]
@@ -123,17 +169,19 @@ def add_content(slide, bullets, style, layout):
         else:
             p.text = bullet
 
-        p.font.size = Pt(20)
+        p.font.size = Pt(
+            random.choice([20, 22])
+        )
 
         p.font.color.rgb = style["text"]
 
-        p.space_after = Pt(14)
+        p.space_after = Pt(12)
 
 
 def create_presentation(
-    topic: str,
-    slides_text: str,
-    style_text: str = ""
+    topic,
+    slides_text,
+    style_text=""
 ):
 
     prs = Presentation()
@@ -155,9 +203,26 @@ def create_presentation(
         )
     }
 
-    slides = data["slides"]
+    templates = [
+        "blob",
+        "blob2",
+        "frame",
+        "card",
+        "corner",
+        "minimal",
+        "clean",
+        "accent"
+    ]
 
-    for index, data in enumerate(slides):
+    previous = None
+
+    for slide_data in data["slides"]:
+
+        template = random.choice(
+            [t for t in templates if t != previous]
+        )
+
+        previous = template
 
         slide = prs.slides.add_slide(
             prs.slide_layouts[6]
@@ -169,151 +234,67 @@ def create_presentation(
 
         fill.fore_color.rgb = style["background"]
 
-        layout = data.get(
-            "layout",
-            "minimal"
-        )
-
-        circle = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL,
-            Inches(11.2),
-            Inches(0.4),
-            Inches(0.8),
-            Inches(0.8)
-        )
-
-        circle.fill.solid()
-
-        circle.fill.fore_color.rgb = style["accent"]
-
-        circle.fill.transparency = 0.82
-
-        circle.line.fill.background()
-
-        line = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE,
-            Inches(0.8),
-            Inches(1.45),
-            Inches(2.7),
-            Inches(0.04)
-        )
-
-        line.fill.solid()
-
-        line.fill.fore_color.rgb = style["accent"]
-
-        line.line.fill.background()
-
-        if layout == "split":
-
-            side_line = slide.shapes.add_shape(
-                MSO_SHAPE.RECTANGLE,
-                Inches(7.2),
-                Inches(1.8),
-                Inches(0.04),
-                Inches(4.8)
+        if template == "blob":
+            add_blob(
+                slide,
+                style["accent"]
             )
 
-            side_line.fill.solid()
+        elif template == "blob2":
 
-            side_line.fill.fore_color.rgb = style["accent"]
-
-            side_line.line.fill.background()
-
-        elif layout == "stacked":
-
-            for i in range(3):
-
-                block = slide.shapes.add_shape(
-                    MSO_SHAPE.ROUNDED_RECTANGLE,
-                    Inches(8),
-                    Inches(2 + i * 1.25),
-                    Inches(3),
-                    Inches(0.8)
-                )
-
-                block.fill.solid()
-
-                block.fill.fore_color.rgb = style["accent"]
-
-                block.fill.transparency = 0.2
-
-                block.line.fill.background()
-
-        elif layout == "accent":
-
-            accent = slide.shapes.add_shape(
-                MSO_SHAPE.ROUNDED_RECTANGLE,
-                Inches(7.5),
-                Inches(2),
-                Inches(4),
-                Inches(3)
+            add_blob(
+                slide,
+                style["accent"]
             )
 
-            accent.fill.solid()
-
-            accent.fill.fore_color.rgb = style["accent"]
-
-            accent.fill.transparency = 0.15
-
-            accent.line.fill.background()
-
-        elif layout == "title":
-
-            title_block = slide.shapes.add_shape(
-                MSO_SHAPE.ROUNDED_RECTANGLE,
-                Inches(0.8),
-                Inches(2),
-                Inches(10.5),
-                Inches(3.5)
+            add_blob(
+                slide,
+                style["accent"]
             )
 
-            title_block.fill.solid()
+        elif template == "frame":
 
-            title_block.fill.fore_color.rgb = style["accent"]
+            add_frame(
+                slide,
+                style["accent"]
+            )
 
-            title_block.fill.transparency = 0.85
+        elif template == "card":
 
-            title_block.line.fill.background()
+            add_card(
+                slide
+            )
 
-        title_box = slide.shapes.add_textbox(
-            Inches(0.8),
-            Inches(0.7),
-            Inches(11),
-            Inches(0.8)
+        elif template == "corner":
+
+            add_corner(
+                slide,
+                style["accent"]
+            )
+
+        elif template == "accent":
+
+            add_blob(
+                slide,
+                style["accent"]
+            )
+
+            add_corner(
+                slide,
+                style["accent"]
+            )
+
+        add_title(
+            slide,
+            slide_data["title"],
+            style
         )
-
-        p = title_box.text_frame.paragraphs[0]
-
-        p.text = data["title"]
-
-        p.font.size = Pt(28)
-
-        p.font.bold = True
-
-        p.font.color.rgb = style["title"]
 
         add_content(
             slide,
-            data["bullets"],
-            style,
-            layout
+            slide_data["bullets"],
+            style
         )
-
-        num_box = slide.shapes.add_textbox(
-            Inches(12.1),
-            Inches(7.0),
-            Inches(0.5),
-            Inches(0.3)
-        )
-
-        num = num_box.text_frame.paragraphs[0]
-
-        num.text = str(index + 1)
-
-        num.font.size = Pt(11)
-
-        num.font.color.rgb = style["accent"]
 
     file_name = f"{topic}.pptx"
 
