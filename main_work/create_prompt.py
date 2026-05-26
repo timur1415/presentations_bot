@@ -19,7 +19,9 @@ from config.config import CHAT_GPT_TOKEN
 from main_work.create_presentation import create_presentation
 
 async def slide(update: Update, context: ContextTypes):
-    keyboard = [['3-5'], ['10-15'], ['20+']]
+    query = update.callback_query
+    await query.answer()
+    keyboard = [['3-5'], ['6-10']]
     markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
 
     await context.bot.send_message(
@@ -42,8 +44,15 @@ async def topic(update: Update, context: ContextTypes):
 async def description(update: Update, context: ContextTypes):
     context.user_data['topic'] = update.effective_message.text
     await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="Опиши презентацию: стиль, цветовую гамму, желаемый дизайн и, если хочешь, добавь примерный текст или идеи для слайдов."
+    chat_id=update.effective_chat.id,
+    text=(
+    "Максимально подробно опиши презентацию — это очень важно для качественного результата.\n\n"
+    "Укажи стиль, цветовую гамму, желаемый дизайн, атмосферу, предпочтительные шрифты, "
+    "анимации, формат слайдов и любые детали, которые помогут точнее передать твоё видение.\n\n"
+    "Также можешь добавить примерный текст для слайдов, структуру презентации, ключевые идеи, "
+    "пожелания по визуалам, изображениям, иконкам или графикам. "
+    "Чем подробнее будет описание, тем лучше получится итоговая презентация."
+    )
     )
     return FINISH_PROMPT
 

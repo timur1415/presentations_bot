@@ -4,8 +4,7 @@ from telegram.ext import (
 from telegram import (
     Update,
     InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    ReplyKeyboardRemove,
+    InlineKeyboardMarkup
 )
 
 from config.states import MAIN_MENU
@@ -16,7 +15,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     markup = InlineKeyboardMarkup(keyboard)
 
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text=".", reply_markup=markup
-    )
+    if update.callback_query: 
+        query = update.callback_query
+        await query.answer()
+
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text=".", reply_markup=markup
+        )
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id, text=".", reply_markup=markup
+        )
+
     return MAIN_MENU
