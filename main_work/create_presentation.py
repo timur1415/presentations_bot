@@ -17,110 +17,74 @@ def hex_to_rgb(hex_color):
     )
 
 
-def add_blob(slide, color):
+def add_background_shapes(slide, color):
 
-    x = random.uniform(-1, 10)
+    positions = [
+        (-1.3, -1.0),
+        (10.8, -1.0),
 
-    y = random.uniform(-1, 6)
+        (-1.3, 5.3),
+        (10.8, 5.3),
 
-    w = random.uniform(2.0, 4.5)
+        (-1.2, 2.2),
+        (11.0, 2.2),
 
-    h = random.uniform(2.0, 4.5)
+        (4.8, -1.1),
+        (4.8, 5.6)
+    ]
 
-    shape = slide.shapes.add_shape(
+    shape_types = [
         MSO_SHAPE.OVAL,
-        Inches(x),
-        Inches(y),
-        Inches(w),
-        Inches(h)
-    )
+        MSO_SHAPE.RECTANGLE,
+        MSO_SHAPE.DIAMOND
+    ]
 
-    shape.fill.solid()
+    for _ in range(random.randint(2, 4)):
 
-    shape.fill.fore_color.rgb = color
+        x, y = random.choice(positions)
 
-    shape.fill.transparency = 0.65
+        size = random.uniform(1.0, 2.4)
 
-    shape.line.fill.background()
+        shape = slide.shapes.add_shape(
+            random.choice(shape_types),
+            Inches(x),
+            Inches(y),
+            Inches(size),
+            Inches(size)
+        )
 
+        shape.fill.solid()
 
-def add_card(slide):
+        shape.fill.fore_color.rgb = color
 
-    x = random.uniform(0.7, 1.4)
+        shape.fill.transparency = 0.82
 
-    y = random.uniform(1.4, 2.2)
-
-    card = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE,
-        Inches(x),
-        Inches(y),
-        Inches(10.5),
-        Inches(4.6)
-    )
-
-    card.fill.solid()
-
-    card.fill.fore_color.rgb = RGBColor(
-        255,
-        255,
-        255
-    )
-
-    card.fill.transparency = 0.02
-
-    card.line.fill.background()
+        shape.line.fill.background()
 
 
 def add_frame(slide, color):
 
     frame = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE,
-        Inches(0.6),
-        Inches(0.6),
-        Inches(11.8),
-        Inches(6.2)
+        Inches(0.45),
+        Inches(0.55),
+        Inches(12.0),
+        Inches(6.0)
     )
 
     frame.fill.background()
 
     frame.line.color.rgb = color
 
-    frame.line.width = Pt(1.4)
-
-
-def add_corner(slide, color):
-
-    corner = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(random.choice([0, 10.6])),
-        Inches(random.choice([0, 5.7])),
-        Inches(2),
-        Inches(1.4)
-    )
-
-    corner.fill.solid()
-
-    corner.fill.fore_color.rgb = color
-
-    corner.fill.transparency = 0.2
-
-    corner.line.fill.background()
+    frame.line.width = Pt(1.1)
 
 
 def add_title(slide, title, style):
 
-    positions = [
-        (0.8, 0.7),
-        (1.0, 0.9),
-        (0.9, 1.1)
-    ]
-
-    x, y = random.choice(positions)
-
     box = slide.shapes.add_textbox(
-        Inches(x),
-        Inches(y),
-        Inches(10),
+        Inches(0.9),
+        Inches(0.55),
+        Inches(10.8),
         Inches(0.7)
     )
 
@@ -128,124 +92,124 @@ def add_title(slide, title, style):
 
     p.text = title
 
-    p.font.size = Pt(28)
+    p.font.size = Pt(26)
 
     p.font.bold = True
 
     p.font.color.rgb = style["title"]
 
-
-def add_content(slide, bullets, style):
-    import random
-    from pptx.util import Inches, Pt
-
-    variants = [
-        "bullets",
-        "paragraph",
-        "definition",
-        "split"
-    ]
-
-    variant = random.choice(variants)
-
-    x = 1.0
-    y = 1.9
-    w = 10
-    h = 4.5
-
-    box = slide.shapes.add_textbox(
-        Inches(x),
-        Inches(y),
-        Inches(w),
-        Inches(h)
+    line = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(0.9),
+        Inches(1.15),
+        Inches(2.2),
+        Inches(0.03)
     )
 
-    tf = box.text_frame
-    tf.word_wrap = True
+    line.fill.solid()
 
-    if variant == "bullets":
+    line.fill.fore_color.rgb = style["accent"]
+
+    line.line.fill.background()
+
+
+def split_long_text(items):
+
+    result = []
+
+    for item in items:
+
+        parts = item.split(". ")
+
+        for part in parts:
+
+            part = part.strip()
+
+            if part:
+                result.append(part)
+
+    return result[:8]
+
+
+def add_content(slide, bullets, style):
+
+    bullets = split_long_text(bullets)
+
+    if len(bullets) <= 4:
+
+        box = slide.shapes.add_textbox(
+            Inches(1.1),
+            Inches(1.8),
+            Inches(10),
+            Inches(3.8)
+        )
+
+        tf = box.text_frame
+
+        tf.word_wrap = True
 
         for i, bullet in enumerate(bullets):
+
             p = tf.add_paragraph() if i else tf.paragraphs[0]
-            p.text = f"• {bullet}"
-            p.font.size = Pt(random.choice([20, 22]))
+
+            p.text = bullet
+
+            p.font.size = Pt(22)
+
             p.font.color.rgb = style["text"]
-            p.space_after = Pt(14)
 
-    elif variant == "paragraph":
+            p.space_after = Pt(16)
 
-        p = tf.paragraphs[0]
+    else:
 
-        text = " ".join(bullets)
+        mid = len(bullets) // 2
 
-        p.text = text
-        p.font.size = Pt(20)
-        p.font.color.rgb = style["text"]
-        p.space_after = Pt(12)
+        left = bullets[:mid]
 
-    elif variant == "definition":
-
-        if bullets:
-
-            title = slide.shapes.add_textbox(
-                Inches(1),
-                Inches(1.9),
-                Inches(4),
-                Inches(0.6)
-            )
-
-            p = title.text_frame.paragraphs[0]
-            p.text = bullets[0]
-            p.font.size = Pt(24)
-            p.font.bold = True
-            p.font.color.rgb = style["title"]
-
-            desc = slide.shapes.add_textbox(
-                Inches(1),
-                Inches(2.6),
-                Inches(9.5),
-                Inches(2.8)
-            )
-
-            p2 = desc.text_frame.paragraphs[0]
-            p2.text = " ".join(bullets[1:])
-            p2.font.size = Pt(20)
-            p2.font.color.rgb = style["text"]
-
-    elif variant == "split":
-
-        left = bullets[:len(bullets)//2]
-        right = bullets[len(bullets)//2:]
+        right = bullets[mid:]
 
         box1 = slide.shapes.add_textbox(
-            Inches(1),
-            Inches(2),
-            Inches(4.4),
-            Inches(4)
+            Inches(1.1),
+            Inches(1.8),
+            Inches(4.7),
+            Inches(4.3)
         )
 
         box2 = slide.shapes.add_textbox(
-            Inches(6),
-            Inches(2),
-            Inches(4.4),
-            Inches(4)
+            Inches(6.2),
+            Inches(1.8),
+            Inches(4.7),
+            Inches(4.3)
         )
 
         tf1 = box1.text_frame
         tf2 = box2.text_frame
 
+        tf1.word_wrap = True
+        tf2.word_wrap = True
+
         for i, bullet in enumerate(left):
+
             p = tf1.add_paragraph() if i else tf1.paragraphs[0]
+
             p.text = bullet
+
             p.font.size = Pt(20)
+
             p.font.color.rgb = style["text"]
+
             p.space_after = Pt(12)
 
         for i, bullet in enumerate(right):
+
             p = tf2.add_paragraph() if i else tf2.paragraphs[0]
+
             p.text = bullet
+
             p.font.size = Pt(20)
+
             p.font.color.rgb = style["text"]
+
             p.space_after = Pt(12)
 
 
@@ -261,39 +225,34 @@ def create_presentation(
 
     style = {
         "background": hex_to_rgb(
-            data["background_color"]
+            data.get("background_color",
+                "#08192E"
+            )
         ),
+
         "title": hex_to_rgb(
-            data["title_color"]
+            data.get(
+                "title_color",
+                "#FFFFFF"
+            )
         ),
+
         "text": hex_to_rgb(
-            data["text_color"]
+            data.get(
+                "text_color",
+                "#D8DEE9"
+            )
         ),
+
         "accent": hex_to_rgb(
-            data["accent_color"]
+            data.get(
+                "accent_color",
+                "#25C6F7"
+            )
         )
     }
 
-    templates = [
-        "blob",
-        "blob2",
-        "frame",
-        "card",
-        "corner",
-        "minimal",
-        "clean",
-        "accent"
-    ]
-
-    previous = None
-
     for slide_data in data["slides"]:
-
-        template = random.choice(
-            [t for t in templates if t != previous]
-        )
-
-        previous = template
 
         slide = prs.slides.add_slide(
             prs.slide_layouts[6]
@@ -305,55 +264,15 @@ def create_presentation(
 
         fill.fore_color.rgb = style["background"]
 
-        if template == "blob":
-            add_blob(
-                slide,
-                style["accent"]
-            )
+        add_background_shapes(
+            slide,
+            style["accent"]
+        )
 
-        elif template == "blob2":
-
-            add_blob(
-                slide,
-                style["accent"]
-            )
-
-            add_blob(
-                slide,
-                style["accent"]
-            )
-
-        elif template == "frame":
-
-            add_frame(
-                slide,
-                style["accent"]
-            )
-
-        elif template == "card":
-
-            add_card(
-                slide
-            )
-
-        elif template == "corner":
-
-            add_corner(
-                slide,
-                style["accent"]
-            )
-
-        elif template == "accent":
-
-            add_blob(
-                slide,
-                style["accent"]
-            )
-
-            add_corner(
-                slide,
-                style["accent"]
-            )
+        add_frame(
+            slide,
+            style["accent"]
+        )
 
         add_title(
             slide,

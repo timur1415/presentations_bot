@@ -1,5 +1,7 @@
 import os
 
+import asyncio
+
 from telegram.ext import (
     ContextTypes,
 )
@@ -12,7 +14,7 @@ from telegram import (
 
 from config.states import DESCRIPTION, TOPIC, FINISH_PROMPT, SEND_PRESENTTION
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from config.config import CHAT_GPT_TOKEN
 
@@ -192,14 +194,14 @@ async def finish_prompt(update: Update, context: ContextTypes):
 
 Без пояснений.
 
-Без markdown.
+Без markdown.ещё
 
 Без `.
 
 Только чистый prompt.
 """
-    client = OpenAI(api_key=CHAT_GPT_TOKEN)
-    response = client.chat.completions.create(
+    client = AsyncOpenAI(api_key=CHAT_GPT_TOKEN)
+    response = await client.chat.completions.create(
         model="gpt-5.2",
         messages=[
             {
@@ -211,7 +213,7 @@ async def finish_prompt(update: Update, context: ContextTypes):
     context.user_data['ai_prompt'] = response.choices[0].message.content
 
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Ваша презентация почти готова\n\nЕсли преза получется не очень то вы можете отправить боту <<ещё>>", reply_markup=markup
+        chat_id=update.effective_chat.id, text="Ваша презентация почти готова\n\nЕсли преза получется не очень то вы можете отправить боту <<переделай>>", reply_markup=markup
     )
 
     return SEND_PRESENTTION
@@ -272,9 +274,9 @@ async def send_presentation(update: Update, context: ContextTypes):
 Без текста после JSON.
 """
 
-    client = OpenAI(api_key=CHAT_GPT_TOKEN)
+    client = AsyncOpenAI(api_key=CHAT_GPT_TOKEN)
 
-    response = client.chat.completions.create(
+    response = await client.chat.completions.create(
         model="gpt-5.2",
         messages=[
             {
