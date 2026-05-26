@@ -136,46 +136,117 @@ def add_title(slide, title, style):
 
 
 def add_content(slide, bullets, style):
+    import random
+    from pptx.util import Inches, Pt
 
-    positions = [
-        (1.0, 2.0),
-        (1.3, 2.2),
-        (1.7, 2.4),
-        (6.0, 2.0),
-        (5.5, 2.5),
+    variants = [
+        "bullets",
+        "paragraph",
+        "definition",
+        "split"
     ]
 
-    x, y = random.choice(positions)
+    variant = random.choice(variants)
+
+    x = 1.0
+    y = 1.9
+    w = 10
+    h = 4.5
 
     box = slide.shapes.add_textbox(
         Inches(x),
         Inches(y),
-        Inches(5.2),
-        Inches(4)
+        Inches(w),
+        Inches(h)
     )
 
     tf = box.text_frame
+    tf.word_wrap = True
 
-    use_bullets = random.choice(
-        [True, False]
-    )
+    if variant == "bullets":
 
-    for i, bullet in enumerate(bullets):
-
-        p = tf.add_paragraph() if i else tf.paragraphs[0]
-
-        if use_bullets:
+        for i, bullet in enumerate(bullets):
+            p = tf.add_paragraph() if i else tf.paragraphs[0]
             p.text = f"• {bullet}"
-        else:
-            p.text = bullet
+            p.font.size = Pt(random.choice([20, 22]))
+            p.font.color.rgb = style["text"]
+            p.space_after = Pt(14)
 
-        p.font.size = Pt(
-            random.choice([20, 22])
+    elif variant == "paragraph":
+
+        p = tf.paragraphs[0]
+
+        text = " ".join(bullets)
+
+        p.text = text
+        p.font.size = Pt(20)
+        p.font.color.rgb = style["text"]
+        p.space_after = Pt(12)
+
+    elif variant == "definition":
+
+        if bullets:
+
+            title = slide.shapes.add_textbox(
+                Inches(1),
+                Inches(1.9),
+                Inches(4),
+                Inches(0.6)
+            )
+
+            p = title.text_frame.paragraphs[0]
+            p.text = bullets[0]
+            p.font.size = Pt(24)
+            p.font.bold = True
+            p.font.color.rgb = style["title"]
+
+            desc = slide.shapes.add_textbox(
+                Inches(1),
+                Inches(2.6),
+                Inches(9.5),
+                Inches(2.8)
+            )
+
+            p2 = desc.text_frame.paragraphs[0]
+            p2.text = " ".join(bullets[1:])
+            p2.font.size = Pt(20)
+            p2.font.color.rgb = style["text"]
+
+    elif variant == "split":
+
+        left = bullets[:len(bullets)//2]
+        right = bullets[len(bullets)//2:]
+
+        box1 = slide.shapes.add_textbox(
+            Inches(1),
+            Inches(2),
+            Inches(4.4),
+            Inches(4)
         )
 
-        p.font.color.rgb = style["text"]
+        box2 = slide.shapes.add_textbox(
+            Inches(6),
+            Inches(2),
+            Inches(4.4),
+            Inches(4)
+        )
 
-        p.space_after = Pt(12)
+        tf1 = box1.text_frame
+        tf2 = box2.text_frame
+
+        for i, bullet in enumerate(left):
+            p = tf1.add_paragraph() if i else tf1.paragraphs[0]
+            p.text = bullet
+            p.font.size = Pt(20)
+            p.font.color.rgb = style["text"]
+            p.space_after = Pt(12)
+
+        for i, bullet in enumerate(right):
+            p = tf2.add_paragraph() if i else tf2.paragraphs[0]
+            p.text = bullet
+            p.font.size = Pt(20)
+            p.font.color.rgb = style["text"]
+            p.space_after = Pt(12)
 
 
 def create_presentation(

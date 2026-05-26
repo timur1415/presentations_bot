@@ -52,85 +52,142 @@ async def finish_prompt(update: Update, context: ContextTypes):
     markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
     description = update.effective_message.text
 
-    prompt_creator = f"""
-Ты профессиональный дизайнер презентаций и prompt engineer.
+    prompt_builder_prompt = f"""
+Ты — AI Presentation Prompt Architect.
 
-На основе данных пользователя создай готовую структуру презентации.
-
-ДАННЫЕ ПОЛЬЗОВАТЕЛЯ:
-
-Тема:
-{context.user_data['topic']}
-
-Количество слайдов:
-{context.user_data['slide']}
-
-Пожелания:
-{description}
-
-ЗАДАЧА:
-
-1. Подбери уникальный визуальный стиль презентации под тему.
-2. Подбери:
-- background_color
-- title_color
-- text_color
-- accent_color
-
-Цвета возвращай строго в HEX.
-
-После этого создай полный контент презентации.
-
-ТРЕБОВАНИЯ:
-
-- современный premium дизайн
-- единый визуальный стиль
-- минимализм
-- много воздуха
-- без перегруженности
-- красивые заголовки
-- краткий и информативный текст
-- 3–5 коротких пунктов на каждом слайде
-- не более 6–10 слов в пункте
-- каждый слайд уникальный по смыслу
-- одинаковый стиль на всей презентации
-
-ФОРМАТ ОТВЕТА СТРОГО:
-
-STYLE:
-background_color: #HEX
-title_color: #HEX
-text_color: #HEX
-accent_color: #HEX
-
-SLIDES:
-
-TITLE: Заголовок
-TEXT:
-- пункт
-- пункт
-- пункт
-
-TITLE: Заголовок
-TEXT:
-- пункт
-- пункт
-- пункт
-
-TITLE: Заголовок
-TEXT:
-- пункт
-- пункт
-- пункт
+Твоя задача — создать идеальный prompt для второй AI-модели, которая будет генерировать JSON презентации.
 
 ВАЖНО:
 
-- без markdown
-- без пояснений
-- без текста до блока STYLE
-- после STYLE сразу SLIDES
-- строго соблюдать формат
-- вернуть только готовый результат
+Ты НЕ создаёшь презентацию.
+Ты НЕ создаёшь JSON.
+Ты НЕ пишешь текст слайдов.
+
+Ты создаёшь только prompt для следующей модели.
+
+
+ВХОДНЫЕ ДАННЫЕ:
+
+Тема презентации:
+{context.user_data["topic"]}
+
+Количество слайдов:
+{context.user_data["slide"]}
+
+Описание пользователя:
+{description}
+
+
+ТВОЯ ЗАДАЧА:
+
+Проанализируй все входные данные.
+
+На основе них создай максимально качественный production-ready prompt для второй AI-модели.
+
+
+Главное правило:
+
+Максимально опирайся на описание пользователя.
+
+Если пользователь написал:
+
+— стиль
+— настроение
+— цветовую палитру
+— количество текста
+— минимализм
+— корпоративный стиль
+— академический стиль
+— современный стиль
+— наличие изображений
+— подробно / кратко
+— визуальные пожелания
+
+то это имеет абсолютный приоритет над дефолтными настройками.
+
+
+
+Если пользователь НЕ уточнил деталей — используй дефолтные правила ниже.
+
+
+
+ДЕФОЛТНЫЕ ПРАВИЛА:
+
+— стиль: premium minimal modern
+— презентация визуальная
+— минималистичная
+— современная
+— аккуратная
+— текст краткий
+— 6–8 bullets на слайд
+— каждый bullet короткий
+— 1 мысль = 1 bullet
+— без длинных абзацев
+— без перегруженных текстовых блоков
+— layouts разнообразные
+— одинаковые layouts подряд не использовать
+— высокий визуальный контраст
+— readability выше дизайна
+— декор только фоновый
+— фигуры не пересекаются с текстом
+— карточки использовать редко
+— если карточка ухудшает читаемость — не использовать
+
+
+
+ПРАВИЛА ДЛЯ ТЕКСТА:
+
+Если пользователь просит кратко:
+
+— 4–6 bullets
+
+Если пользователь ничего не указал:
+
+— 6–8 bullets
+
+Если пользователь просит подробно:
+
+— 8–12 bullets
+или более развёрнутые bullets
+
+
+Каждый bullet:
+
+— короткий
+— ёмкий
+— легко читается с экрана
+
+
+
+ПРАВИЛА ВИЗУАЛА:
+
+Обязательно опиши для второй модели:
+
+— стиль
+— настроение
+— text density
+— количество bullets
+— layouts
+— цветовую палитру
+— safe area
+— правила контраста
+— правила работы с карточками
+— правила читаемости
+— правила разнообразия между слайдами
+
+
+
+ФОРМАТ ОТВЕТА:
+
+Верни ТОЛЬКО готовый prompt для второй модели.
+
+Без пояснений.
+
+Без markdown.
+
+Без `.
+
+Только чистый prompt.
 """
     client = OpenAI(api_key=CHAT_GPT_TOKEN)
     response = client.chat.completions.create(
@@ -138,14 +195,14 @@ TEXT:
         messages=[
             {
                 "role": "system",
-                "content": f"{prompt_creator}"
+                "content": f"{prompt_builder_prompt}"
             }
         ]
     )
     context.user_data['ai_prompt'] = response.choices[0].message.content
 
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="вот подробный план презентации", reply_markup=markup
+        chat_id=update.effective_chat.id, text="Ваша презентация почти готова", reply_markup=markup
     )
 
     return SEND_PRESENTTION
@@ -159,20 +216,14 @@ async def send_presentation(update: Update, context: ContextTypes):
 
     markup = InlineKeyboardMarkup(keyboard)
 
-
     presentation_prompt = f"""
-Создай JSON презентации.
-
-Тема:
-{context.user_data["topic"]}
-
-Количество слайдов:
-{context.user_data["slide"]}
-
-Пожелания:
 {context.user_data["ai_prompt"]}
 
-Верни строго JSON:
+ВАЖНО:
+
+Верни результат строго в JSON формате.
+
+Обязательно используй именно эту структуру:
 
 {{
   "background_color": "#HEX",
@@ -183,20 +234,33 @@ async def send_presentation(update: Update, context: ContextTypes):
     {{
       "layout": "title",
       "title": "...",
-      "bullets": ["...", "...", "..."]
+      "bullets": [
+        "...",
+        "..."
+      ]
     }}
   ]
 }}
 
-ПРАВИЛА:
-- Только JSON
-- Без markdown
-- Без ```json
-- Цвета только HEX
-- 3–5 bullets
-- bullets короткие
-- каждый слайд визуально отличается
-- стиль premium minimal
+ОБЯЗАТЕЛЬНО:
+
+— background_color обязателен
+— title_color обязателен
+— text_color обязателен
+— accent_color обязателен
+— slides обязателен
+
+Только JSON.
+
+Без markdown.
+
+Без ```json
+
+Без пояснений.
+
+Без текста до JSON.
+
+Без текста после JSON.
 """
 
     client = OpenAI(api_key=CHAT_GPT_TOKEN)
