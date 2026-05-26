@@ -211,7 +211,7 @@ async def finish_prompt(update: Update, context: ContextTypes):
     context.user_data['ai_prompt'] = response.choices[0].message.content
 
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Ваша презентация почти готова", reply_markup=markup
+        chat_id=update.effective_chat.id, text="Ваша презентация почти готова\n\nЕсли преза получется не очень то вы можете отправить боту <<ещё>>", reply_markup=markup
     )
 
     return SEND_PRESENTTION
